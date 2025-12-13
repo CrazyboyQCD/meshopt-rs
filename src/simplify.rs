@@ -532,32 +532,39 @@ where
     vertex_weighted_attrs
 }
 
-union CollapseUnion {
-    bidi: u32,
-    error: f32,
-    errorui: u32,
+#[derive(Clone, Copy, Default)]
+struct CollapseUnion {
+    data: u32,
 }
 
 impl Debug for CollapseUnion {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("CollapseUnion")
-            .field("bidi/errorui", unsafe { &self.bidi })
-            .field("error", unsafe { &self.error })
+            .field("bidi/errorui", &self.bidi())
+            .field("error", &self.error())
             .finish()
     }
 }
 
-impl Clone for CollapseUnion {
-    fn clone(&self) -> Self {
-        Self {
-            bidi: unsafe { self.bidi },
-        }
+impl CollapseUnion {
+    pub fn from_bidi(bidi: u32) -> Self {
+        Self { data: bidi }
     }
-}
 
-impl Default for CollapseUnion {
-    fn default() -> Self {
-        Self { bidi: 0 }
+    pub fn bidi(&self) -> u32 {
+        self.data
+    }
+
+    pub fn error(&self) -> f32 {
+        f32::from_bits(self.data)
+    }
+
+    pub fn set_error(&mut self, error: f32) {
+        self.data = error.to_bits();
+    }
+
+    pub fn errorui(&self) -> u32 {
+        self.data
     }
 }
 
@@ -1108,7 +1115,7 @@ fn pick_edge_collapses(
                 let c = Collapse {
                     v0: i0 as u32,
                     v1: i1 as u32,
-                    u: CollapseUnion { bidi: 1 },
+                    u: CollapseUnion::from_bidi(1),
                 };
                 collapses[collapse_count] = c;
                 collapse_count += 1;
@@ -1120,7 +1127,7 @@ fn pick_edge_collapses(
                 let c = Collapse {
                     v0: e0 as u32,
                     v1: e1 as u32,
-                    u: CollapseUnion { bidi: 0 },
+                    u: CollapseUnion::from_bidi(0),
                 };
                 collapses[collapse_count] = c;
                 collapse_count += 1;
@@ -1146,8 +1153,8 @@ fn rank_edge_collapses<const ATTR_COUNT: usize>(
 
         // most edges are bidirectional which means we need to evaluate errors for two collapses
         // to keep this code branchless we just use the same edge for unidirectional edges
-        let j0 = unsafe { if c.u.bidi != 0 { i1 } else { i0 } };
-        let j1 = unsafe { if c.u.bidi != 0 { i0 } else { i1 } };
+        let j0 = if c.u.bidi() != 0 { i1 } else { i0 };
+        let j1 = if c.u.bidi() != 0 { i0 } else { i1 };
 
         let ri0 = remap[i0 as usize] as usize;
         let rj0 = remap[j0 as usize] as usize;
@@ -1178,7 +1185,7 @@ fn rank_edge_collapses<const ATTR_COUNT: usize>(
         // pick edge direction with minimal error
         c.v0 = if ei <= ej { i0 } else { j0 };
         c.v1 = if ei <= ej { i1 } else { j1 };
-        c.u.error = ei.min(ej);
+        c.u.set_error(ei.min(ej));
     }
 }
 
@@ -1194,7 +1201,7 @@ fn sort_edge_collapses(sort_order: &mut [u32], collapses: &[Collapse]) {
 
     for c in collapses {
         // skip sign bit since error is non-negative
-        let error = unsafe { c.u.errorui };
+        let error = c.u.errorui();
         let mut key = (error << 1) >> (32 - SORT_BITS);
         key = if key < SORT_BINS { key } else { SORT_BINS - 1 };
 
@@ -1215,7 +1222,7 @@ fn sort_edge_collapses(sort_order: &mut [u32], collapses: &[Collapse]) {
     // compute sort order based on offsets
     for (i, c) in collapses.iter().enumerate() {
         // skip sign bit since error is non-negative
-        let error = unsafe { c.u.errorui };
+        let error = c.u.errorui();
         let key = (error << 1) >> (32 - SORT_BITS);
         let key = if key < SORT_BINS { key } else { SORT_BINS - 1 } as usize;
 
@@ -1252,7 +1259,7 @@ fn perform_edge_collapses<const ATTR_COUNT: usize>(
     for order in collapse_order.iter().take(collapse_count) {
         let c = collapses[*order as usize].clone();
 
-        let error = unsafe { c.u.error };
+        let error = c.u.error();
 
         if error > error_limit {
             break;
@@ -1265,14 +1272,14 @@ fn perform_edge_collapses<const ATTR_COUNT: usize>(
         // we limit the error in each pass based on the error of optimal last collapse; since many collapses will be locked
         // as they will share vertices with other successfull collapses, we need to increase the acceptable error by some factor
         let error_goal = if edge_collapse_goal < collapses.len() {
-            1.5 * unsafe { collapses[collapse_order[edge_collapse_goal] as usize].u.error }
+            1.5 * collapses[collapse_order[edge_collapse_goal] as usize].u.error()
         } else {
             f32::MAX
         };
 
         // on average, each collapse is expected to lock 6 other collapses; to avoid degenerate passes on meshes with odd
         // topology, we only abort if we got over 1/6 collapses accordingly.
-        if unsafe { c.u.error } > error_goal && triangle_collapses > triangle_collapse_goal / 6 {
+        if c.u.error() > error_goal && triangle_collapses > triangle_collapse_goal / 6 {
             break;
         }
 
@@ -1353,7 +1360,7 @@ fn perform_edge_collapses<const ATTR_COUNT: usize>(
         triangle_collapses += if kind == VertexKind::Border { 1 } else { 2 };
         edge_collapses += 1;
 
-        *result_error = result_error.max(unsafe { c.u.error });
+        *result_error = result_error.max(c.u.error());
     }
 
     edge_collapses
