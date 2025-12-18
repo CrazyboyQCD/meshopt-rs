@@ -10,9 +10,11 @@ If you want to use the original C++ implementation from Rust, check out the [mes
 
 ## Features
 
-`meshoptimizer` v0.21 feature level is the current support target. Planned but currently missing features:
+Most `meshoptimizer` v0.22 features are supported, expect:
 - [SIMD support](https://github.com/yzsolt/meshopt-rs/issues/1)
 - [WASM support](https://github.com/yzsolt/meshopt-rs/issues/2)
+
+Porting all v1.0 features is still in progress, done in incremental steps.
 
 Experimental features (hidden behind `MESHOPTIMIZER_EXPERIMENTAL` in the original implementation) can be enabled with the `experimental` Cargo feature:
 
