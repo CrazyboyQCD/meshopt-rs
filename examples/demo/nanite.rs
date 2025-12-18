@@ -129,10 +129,8 @@ fn clusterize(vertices: &[impl Vertex], indices: &[u32]) -> Vec<Cluster> {
 
     for (meshlet, cluster) in meshlets.iter().zip(clusters.iter_mut()) {
         optimize_meshlet(
-            &mut meshlet_vertices
-                [meshlet.vertex_offset as usize..(meshlet.vertex_offset + meshlet.vertex_count) as usize],
-            &mut meshlet_triangles
-                [meshlet.triangle_offset as usize..(meshlet.triangle_offset + meshlet.triangle_count * 3) as usize],
+            meshlet.vertices_mut(&mut meshlet_vertices),
+            meshlet.triangles_mut(&mut meshlet_triangles),
         );
 
         // note: for now we discard meshlet-local indices; they are valuable for shader code so in the future we should bring them back

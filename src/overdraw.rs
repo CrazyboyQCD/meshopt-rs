@@ -516,7 +516,7 @@ pub fn optimize_overdraw<V>(destination: &mut [u32], indices: &[u32], vertices: 
 where
     V: Vertex,
 {
-    assert_eq!(indices.len() % 3, 0);
+    assert!(indices.len().is_multiple_of(3));
 
     // guard for empty meshes
     if indices.is_empty() || vertices.is_empty() {

@@ -364,7 +364,7 @@ pub fn decode_index_buffer<T>(destination: &mut [T], buffer: &[u8]) -> Result<()
 where
     T: Copy + From<u32>,
 {
-    assert_eq!(destination.len() % 3, 0);
+    assert!(destination.len().is_multiple_of(3));
     //assert!(index_size == 2 || index_size == 4);
 
     // the minimum valid encoding is header, 1 byte per triangle and a 16-byte codeaux table
