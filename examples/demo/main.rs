@@ -1095,10 +1095,8 @@ fn meshlets(mesh: &Mesh, scan: bool, uniform: bool) {
     #[cfg(feature = "experimental")]
     for meshlet in &meshlets {
         optimize_meshlet(
-            &mut meshlet_vertices
-                [meshlet.vertex_offset as usize..(meshlet.vertex_offset + meshlet.vertex_count) as usize],
-            &mut meshlet_triangles
-                [meshlet.triangle_offset as usize..(meshlet.triangle_offset + meshlet.triangle_count * 3) as usize],
+            meshlet.vertices_mut(&mut meshlet_vertices),
+            meshlet.triangles_mut(&mut meshlet_triangles),
         );
     }
 
@@ -1196,8 +1194,8 @@ fn meshlets(mesh: &Mesh, scan: bool, uniform: bool) {
     let start = Instant::now();
     for (m, (radius, cone)) in meshlets.iter().zip(radii_cones.iter_mut()) {
         let bounds = compute_meshlet_bounds(
-            &meshlet_vertices[m.vertex_offset as usize..],
-            &meshlet_triangles[m.triangle_offset as usize..(m.triangle_offset + m.triangle_count * 3) as usize],
+            m.vertices(&meshlet_vertices),
+            m.triangles(&meshlet_triangles),
             &mesh.vertices,
         );
 

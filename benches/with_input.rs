@@ -228,9 +228,8 @@ fn with_input(c: &mut Criterion) {
             b.iter(|| {
                 for meshlet in &meshlets {
                     compute_meshlet_bounds(
-                        &meshlet_vertices[meshlet.vertex_offset as usize..],
-                        &meshlet_triangles[meshlet.triangle_offset as usize
-                            ..(meshlet.triangle_offset + meshlet.triangle_count * 3) as usize],
+                        meshlet.vertices(&meshlet_vertices),
+                        meshlet.triangles(&meshlet_triangles),
                         &mesh.vertices,
                     );
                 }

@@ -54,6 +54,36 @@ pub struct Meshlet {
     pub triangle_count: u32,
 }
 
+impl Meshlet {
+    pub fn vertices<'a>(&self, vertices: &'a [u32]) -> &'a [u32] {
+        let offset = self.vertex_offset as usize;
+        let count = self.vertex_count as usize;
+
+        &vertices[offset..offset + count]
+    }
+
+    pub fn vertices_mut<'a>(&self, vertices: &'a mut [u32]) -> &'a mut [u32] {
+        let offset = self.vertex_offset as usize;
+        let count = self.vertex_count as usize;
+
+        &mut vertices[offset..offset + count]
+    }
+
+    pub fn triangles<'a>(&self, triangles: &'a [u8]) -> &'a [u8] {
+        let offset = self.triangle_offset as usize;
+        let count = self.triangle_count as usize;
+
+        &triangles[offset..offset + count * 3]
+    }
+
+    pub fn triangles_mut<'a>(&self, triangles: &'a mut [u8]) -> &'a mut [u8] {
+        let offset = self.triangle_offset as usize;
+        let count = self.triangle_count as usize;
+
+        &mut triangles[offset..offset + count * 3]
+    }
+}
+
 fn compute_bounding_sphere(points: &[[f32; 3]]) -> [f32; 4] {
     assert!(!points.is_empty());
 
