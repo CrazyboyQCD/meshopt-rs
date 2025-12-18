@@ -25,9 +25,17 @@ trace = []
 bitflags = "2.10.0"
 
 [dev-dependencies]
-criterion = "0.7.0"
 miniz_oxide = "0.8.9"
 tobj = "4.0.3"
+
+[target.'cfg(not(target_family = "wasm"))'.dev-dependencies.criterion]
+version = "0.7.0"
+
+[target.'cfg(target_family = "wasm")'.dev-dependencies.criterion]
+version = "0.7.0"
+default-features = false
+# Default features, excluding `rayon` which isn't supported on WASM
+features = ["plotters", "cargo_bench_support"]
 
 [[bench]]
 name = "with_input"
