@@ -1990,7 +1990,7 @@ where
         assert!(ATTR_COUNT < MAX_ATTRIBUTES);
     }
 
-    assert_eq!(indices.len() % 3, 0);
+    assert!(indices.len().is_multiple_of(3));
     assert!(target_index_count <= indices.len());
     assert!(target_error >= 0.0);
     assert!(attribute_weights.iter().all(|w| *w >= 0.0));
@@ -2325,7 +2325,7 @@ where
 {
     use experimental::*;
 
-    assert_eq!(indices.len() % 3, 0);
+    assert!(indices.len().is_multiple_of(3));
     assert!(target_index_count <= indices.len());
 
     // we expect to get ~2 triangles/vertex in the output

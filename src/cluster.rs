@@ -1064,7 +1064,7 @@ pub fn compute_meshlet_bounds<V>(meshlet_vertices: &[u32], meshlet_triangles: &[
 where
     V: Vertex,
 {
-    assert_eq!(meshlet_triangles.len() % 3, 0);
+    assert!(meshlet_triangles.len().is_multiple_of(3));
 
     let triangle_count = meshlet_triangles.len() / 3;
     assert!(triangle_count <= MESHLET_MAX_TRIANGLES);
