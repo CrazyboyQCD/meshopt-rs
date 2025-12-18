@@ -81,17 +81,11 @@ fn decode_filter_exp_scalar<'a>(data: impl Iterator<Item = &'a mut u32>) {
         let m = (*v << 8) as i32 >> 8;
         let e = *v as i32 >> 24;
 
-        union U {
-            f: f32,
-            ui: u32,
-        }
-
         // optimized version of ldexp(float(m), e)
         let ui = ((e + 127) as u32) << 23;
-        let mut u = U { ui };
-        u.f = unsafe { u.f } * m as f32;
+        let f = f32::from_bits(ui) * m as f32;
 
-        *v = unsafe { u.ui };
+        *v = f.to_bits();
     }
 }
 
